@@ -50,6 +50,8 @@
 (defn page []
   [:div
    [navbar]
+   [:button#btn1 {:type "button"} "chsk-send! (w/o reply)"]
+   [:button#btn2 {:type "button"} "chsk-send! (with reply)"]
    [(pages @(rf/subscribe [:page]))]])
 
 ;; -------------------------
