@@ -72,7 +72,8 @@
 (defn page []
   [:div
    [navbar]
-   [:button#btn1 {:type "button" :on-click #(chsk-send! [:example/button1 {:had-a-callback? "nope"}])} "chsk-send! (w/o reply)" ]
+   [:button#btn1 {:type "button" :on-click #(chsk-send! [:example/button1 {:had-a-callback? "nope"}])}
+    "chsk-send! (w/o reply)"]
    [:button#btn2 {:type "button" :on-click #(js/alert "Hiya")} "chsk-send! (with reply)" ]
    [(pages @(rf/subscribe [:page]))]])
 
@@ -83,6 +84,8 @@
   (reitit/router
     [["/" :home]
      ["/about" :about]]))
+
+
 
 ;; -------------------------
 ;; History

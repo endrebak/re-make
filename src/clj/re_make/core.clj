@@ -171,6 +171,9 @@
     (?reply-fn loop-enabled?)))
 
 ;; TODO Add your (defmethod -event-msg-handler <event-id> [ev-msg] <body>)s here...
+(defmethod -event-msg-handler :example/button1
+  [{:as ev-msg :keys [?reply-fn]}]
+  (println "button1 pushed!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
 
 ;;;; Sente event router (our `event-msg-handler` loop)
 
