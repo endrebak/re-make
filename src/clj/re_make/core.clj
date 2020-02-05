@@ -3,11 +3,15 @@
   {:author "Peter Taoussanis (@ptaoussanis)"}
 
   (:require
+   [clojure.java.io :as io]
    [re-make.layout :as layout]
    [re-make.middleware :as middleware]
    [clojure.string     :as str]
    [ring.middleware.defaults]
+   [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.anti-forgery :as anti-forgery]
+   [ring.middleware.webjars :refer [wrap-webjars]]
+   [ring.util.http-response :as response]
    [compojure.core     :as comp :refer (defroutes GET POST)]
    [compojure.route    :as route]
    [hiccup.core        :as hiccup]
@@ -81,6 +85,9 @@
 
 (defroutes ring-routes
   (GET  "/"      ring-req (home-page ring-req))
+  (GET  "/docs"  ring-req (fn [_]
+                            (-> (response/ok (-> "docs/docs.md" io/resource slurp))
+                                (response/header "Content-Type" "text/plain; charset=utf-8"))))
   (GET  "/chsk"  ring-req (ring-ajax-get-or-ws-handshake ring-req))
   (POST "/chsk"  ring-req (ring-ajax-post                ring-req))
   (POST "/login" ring-req (login-handler                 ring-req))
@@ -95,7 +102,7 @@
   You're also STRONGLY recommended to use `ring.middleware.anti-forgery`
   or something similar."
   (ring.middleware.defaults/wrap-defaults
-    ring-routes ring.middleware.defaults/site-defaults))
+   (-> ring-routes wrap-webjars wrap-reload) ring.middleware.defaults/site-defaults))
 
 ;;;; Some server>user async push examples
 
