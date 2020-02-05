@@ -1,5 +1,6 @@
 (ns re-make.core
   (:require
+    [taoensso.sente :as sente]
     [day8.re-frame.http-fx]
     [reagent.core :as r]
     [re-frame.core :as rf]
@@ -11,6 +12,27 @@
     [reitit.core :as reitit]
     [clojure.string :as string])
   (:import goog.History))
+
+(enable-console-print!)
+
+(def ?csrf-token
+  (when-let [el (.getElementById js/document "sente-csrf-token")]
+    (.getAttribute el "data-csrf-token")))
+
+(if ?csrf-token
+  (println "CSRF token detected in HTML, great!")
+  (println "CSRF token NOT detected in HTML, default Sente config will reject requests"))
+
+(let [{:keys [chsk ch-recv send-fn state]}
+      (sente/make-channel-socket! "/chsk" ; Note the same path as before
+                                  ?csrf-token
+                                  {:type :auto ; e/o #{:auto :ajax :ws}
+                                   })]
+  (def chsk       chsk)
+  (def ch-chsk    ch-recv) ; ChannelSocket's receive channel
+  (def chsk-send! send-fn) ; ChannelSocket's send API fn
+  (def chsk-state state)   ; Watchable, read-only atom
+  )
 
 (defn nav-link [uri title page]
   [:a.navbar-item
@@ -50,8 +72,8 @@
 (defn page []
   [:div
    [navbar]
-   [:button#btn1 {:type "button"} "chsk-send! (w/o reply)"]
-   [:button#btn2 {:type "button"} "chsk-send! (with reply)"]
+   [:button#btn1 {:type "button" :on-click #(chsk-send! [:example/button1 {:had-a-callback? "nope"}])} "chsk-send! (w/o reply)" ]
+   [:button#btn2 {:type "button" :on-click #(js/alert "Hiya")} "chsk-send! (with reply)" ]
    [(pages @(rf/subscribe [:page]))]])
 
 ;; -------------------------

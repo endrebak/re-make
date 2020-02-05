@@ -7,7 +7,6 @@
   </head>
   <body>
 
-    <div data-csrf-token={{csrf-token}} id="sente-csrf-token">
     <div id="app">
       <section class="section">
         <div class="container is-fluid">
@@ -28,6 +27,8 @@
         </div>
       </section>
     </div>
+
+    <div data-csrf-token={{csrf-token}} id="sente-csrf-token">
 
     <!-- scripts and styles -->
     {% style "/assets/bulma/css/bulma.min.css" %}
