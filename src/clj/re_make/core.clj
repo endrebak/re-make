@@ -102,7 +102,7 @@
   You're also STRONGLY recommended to use `ring.middleware.anti-forgery`
   or something similar."
   (ring.middleware.defaults/wrap-defaults
-   (-> ring-routes wrap-webjars wrap-reload) ring.middleware.defaults/site-defaults))
+   (-> ring-routes var wrap-reload wrap-webjars) ring.middleware.defaults/site-defaults))
 
 ;;;; Some server>user async push examples
 
