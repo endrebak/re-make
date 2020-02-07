@@ -9,10 +9,10 @@
    [re-make.middleware :as middleware]
    [clojure.string     :as str]
    [ring.middleware.defaults]
-   [ring.middleware.format :refer [wrap-restful-format]]
    [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.anti-forgery :as anti-forgery]
    [ring.middleware.webjars :refer [wrap-webjars]]
+   [ring.middleware.format :refer [wrap-restful-format]]
    [ring.util.http-response :as response]
    [compojure.core     :as comp :refer (defroutes GET POST)]
    [compojure.route    :as route]
@@ -85,10 +85,10 @@
 (defn home-page [request]
   (layout/render request "home.html"))
 
-(defn wrap-formats [handler] (wrap-restful-format
-                              handler
-                              {:formats [:json-kw :transit-json :transit-msgpack]}))
-
+(defn wrap-formats [handler]
+  (wrap-restful-format
+   handler
+   {:formats [:json-kw :transit-json :transit-msgpack]}))
 
 (defroutes ring-routes
   (GET  "/"      ring-req (home-page ring-req))
@@ -96,15 +96,15 @@
                             (-> (response/ok (-> "docs/docs.md" io/resource slurp))
                                 (response/header "Content-Type" "text/plain; charset=utf-8"))))
   (GET  "/chsk"  ring-req (ring-ajax-get-or-ws-handshake ring-req))
-  (POST "/json" ring-req #(response/ok {:result (-> % :params :id)}))
+  (wrap-formats (POST "/json"  ring-req (fn [request] (response/ok
+                                                       {:result (-> request :params)}))))
   (POST "/chsk"  ring-req (ring-ajax-post                ring-req))
   (POST "/login" ring-req (login-handler                 ring-req))
   (route/resources "/") ; Static files, notably public/main.js (our cljs target)
   (route/not-found "<h1>Page not found</h1>"))
 
+;; (defroutes data
 
-;; (defroutes json-route
-;;   (POST "/json" ring-req ()))
 
 (def main-ring-handler
   "**NB**: Sente requires the Ring `wrap-params` + `wrap-keyword-params`
@@ -114,7 +114,9 @@
   You're also STRONGLY recommended to use `ring.middleware.anti-forgery`
   or something similar."
   (ring.middleware.defaults/wrap-defaults
-   (-> ring-routes var wrap-reload wrap-formats wrap-webjars) (assoc-in ring.middleware.defaults/site-defaults [:security :anti-forgery] false)))
+   (-> ring-routes var wrap-reload wrap-webjars)
+   (assoc-in ring.middleware.defaults/site-defaults [:security :anti-forgery] false)))
+   ;; ring.middleware.defaults/site-defaults))
 
 ;;;; Some server>user async push examples
 
@@ -242,101 +244,3 @@
 (comment
   (start!)
   (test-fast-server>user-pushes))
-
-
-;; (ns re-make.core
-;;   (:require
-;;     [re-make.handler :as handler]
-;;     [re-make.nrepl :as nrepl]
-;;     [luminus.http-server :as http]
-;;     [re-make.config :refer [env]]
-;;     [clojure.tools.cli :refer [parse-opts]]
-;;     [clojure.tools.logging :as log]
-;;     [mount.core :as mount])
-;;   (:gen-class))
-
-;; ;; log uncaught exceptions in threads
-;; (Thread/setDefaultUncaughtExceptionHandler
-;;   (reify Thread$UncaughtExceptionHandler
-;;     (uncaughtException [_ thread ex]
-;;       (log/error {:what :uncaught-exception
-;;                   :exception ex
-;;                   :where (str "Uncaught exception on" (.getName thread))}))))
-
-;; (def cli-options
-;;   [["-p" "--port PORT" "Port number"
-;;     :parse-fn #(Integer/parseInt %)]])
-
-;; (mount/defstate ^{:on-reload :noop} http-server
-;;   :start
-;;   (http/start
-;;     (-> env
-;;         (assoc  :handler (handler/app))
-;;         (update :io-threads #(or % (* 2 (.availableProcessors (Runtime/getRuntime)))))
-;;         (update :port #(or (-> env :options :port) %))))
-;;   :stop
-;;   (http/stop http-server))
-
-;; (mount/defstate ^{:on-reload :noop} repl-server
-;;   :start
-;;   (when (env :nrepl-port)
-;;     (nrepl/start {:bind (env :nrepl-bind)
-;;                   :port (env :nrepl-port)}))
-;;   :stop
-;;   (when repl-server
-;;     (nrepl/stop repl-server)))
-
-
-;; (defn stop-app []
-;;   (doseq [component (:stopped (mount/stop))]
-;;     (log/info component "stopped"))
-;;   (shutdown-agents))
-
-;; (defn start-app [args]
-;;   (doseq [component (-> args
-;;                         (parse-opts cli-options)
-;;                         mount/start-with-args
-;;                         :started)]
-;;     (log/info component "started"))
-;;   (.addShutdownHook (Runtime/getRuntime) (Thread. stop-app)))
-
-;; (defn -main [& args]
-;;   (start-app args))
-
-;; (defn landing-pg-handler [ring-req]
-;;   (hiccup/html
-;;     [:h1 "Sente reference example"]
-;;     (let [csrf-token
-;;           ;; (:anti-forgery-token ring-req) ; Also an option
-;;           (force anti-forgery/*anti-forgery-token*)]
-
-;;       [:div#sente-csrf-token {:data-csrf-token csrf-token}])
-;;     [:p "An Ajax/WebSocket" [:strong " (random choice!)"] " has been configured for this example"]
-;;     [:hr]
-;;     [:p [:strong "Step 1: "] " try hitting the buttons:"]
-;;     [:p
-;;      [:button#btn1 {:type "button"} "chsk-send! (w/o reply)"]]
-;;      ;; [:button#btn2 {:type "button"} "chsk-send! (with reply)"]]
-;;     [:p
-;;      [:button#btn3 {:type "button"} "Test rapid server>user async pushes"]
-;;      [:button#btn4 {:type "button"} "Toggle server>user async broadcast push loop"]]
-;;     [:p
-;;      [:button#btn5 {:type "button"} "Disconnect"]
-;;      [:button#btn6 {:type "button"} "Reconnect"]]
-;;     ;;
-;;     [:p [:strong "Step 2: "] " observe std-out (for server output) and below (for client output):"]
-;;     [:textarea#output {:style "width: 100%; height: 200px;"}]
-;;     ;;
-;;     [:hr]
-;;     [:h2 "Step 3: try login with a user-id"]
-;;     [:p  "The server can use this id to send events to *you* specifically."]
-;;     [:p
-;;      [:input#input-login {:type :text :placeholder "User-id"}]
-;;      [:button#btn-login {:type "button"} "Secure login!"]]
-;;     ;;
-;;     [:hr]
-;;     [:h2 "Step 4: want to re-randomize Ajax/WebSocket connection type?"]
-;;     [:p "Hit your browser's reload/refresh button"]
-;;     [:div#content]
-;;     [:script "js/app.js"] ; Include our cljs target
-;;     ))
