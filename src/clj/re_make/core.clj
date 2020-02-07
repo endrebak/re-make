@@ -4,10 +4,12 @@
 
   (:require
    [clojure.java.io :as io]
+   [re-make.watch :as watch]
    [re-make.layout :as layout]
    [re-make.middleware :as middleware]
    [clojure.string     :as str]
    [ring.middleware.defaults]
+   [ring.middleware.format :refer [wrap-restful-format]]
    [ring.middleware.reload :refer [wrap-reload]]
    [ring.middleware.anti-forgery :as anti-forgery]
    [ring.middleware.webjars :refer [wrap-webjars]]
@@ -48,7 +50,7 @@
 
       chsk-server
       (sente/make-channel-socket-server!
-       (get-sch-adapter) {:packer packer})
+       (get-sch-adapter) {:packer packer :csrf-token-fn nil})
 
       {:keys [ch-recv send-fn connected-uids
               ajax-post-fn ajax-get-or-ws-handshake-fn]}
@@ -83,16 +85,26 @@
 (defn home-page [request]
   (layout/render request "home.html"))
 
+(defn wrap-formats [handler] (wrap-restful-format
+                              handler
+                              {:formats [:json-kw :transit-json :transit-msgpack]}))
+
+
 (defroutes ring-routes
   (GET  "/"      ring-req (home-page ring-req))
   (GET  "/docs"  ring-req (fn [_]
                             (-> (response/ok (-> "docs/docs.md" io/resource slurp))
                                 (response/header "Content-Type" "text/plain; charset=utf-8"))))
   (GET  "/chsk"  ring-req (ring-ajax-get-or-ws-handshake ring-req))
+  (POST "/json" ring-req #(response/ok {:result (-> % :params :id)}))
   (POST "/chsk"  ring-req (ring-ajax-post                ring-req))
   (POST "/login" ring-req (login-handler                 ring-req))
   (route/resources "/") ; Static files, notably public/main.js (our cljs target)
   (route/not-found "<h1>Page not found</h1>"))
+
+
+;; (defroutes json-route
+;;   (POST "/json" ring-req ()))
 
 (def main-ring-handler
   "**NB**: Sente requires the Ring `wrap-params` + `wrap-keyword-params`
@@ -102,7 +114,7 @@
   You're also STRONGLY recommended to use `ring.middleware.anti-forgery`
   or something similar."
   (ring.middleware.defaults/wrap-defaults
-   (-> ring-routes var wrap-reload wrap-webjars) ring.middleware.defaults/site-defaults))
+   (-> ring-routes var wrap-reload wrap-formats wrap-webjars) (assoc-in ring.middleware.defaults/site-defaults [:security :anti-forgery] false)))
 
 ;;;; Some server>user async push examples
 
@@ -223,7 +235,7 @@
     (reset! web-server_ stop-fn)))
 
 (defn stop!  []  (stop-router!)  (stop-web-server!))
-(defn start! [] (start-router!) (start-web-server!) (start-example-broadcaster!))
+(defn start! [] (start-router!) (start-web-server! 3000) (start-example-broadcaster!))
 
 (defn -main "For `lein run`, etc." [] (start!))
 

@@ -9,7 +9,7 @@
                  [com.taoensso/timbre       "4.10.0"]
                  [com.taoensso/encore "2.119.0"] ; Stable
                  [com.taoensso/sente "1.15.0"] ; Stable, see CHANGELOG for details
-
+                 [hawk "0.2.11"]
                  [clojure.java-time "0.3.2"]
                  [com.cognitect/transit-clj "0.8.313"]
                  [com.google.javascript/closure-compiler-unshaded "v20190618" :scope "provided"]
@@ -38,6 +38,7 @@
                  [re-frame "0.10.8"]
                  [reagent "0.8.1"]
                  [ring-webjars "0.2.0"]
+                 [ring-middleware-format "0.7.4"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
                  [selmer "1.12.14"]
