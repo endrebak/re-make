@@ -19,7 +19,7 @@
 
 (def workflow-files-to-watch (atom []))
 
-
+(def five 5)
 ;; (defn reeval-workflow-files-to-watch! []
 ;;   "read workflow definition and check for more files to watch
 ;; "
@@ -30,9 +30,12 @@
 ;;   "Always have main-workflow as one to watch"
 ;;   ())
 
-;; (defn watch-main-file
-;;   (hawk/watch! [{:paths ["."]
-;;                  :handler (fn [ctx e]
-;;                             (println "event: " e)
-;;                             (println "context: " ctx)
-;;                             ctx)}]))
+(def watcher
+  (hawk/watch! [{:paths ["."]
+                 :handler (fn [ctx e]
+                            (println "event: " e)
+                            (println "context: " ctx)
+                            ctx)}]))
+
+(defn stop [watcher]
+  (hawk/stop! watcher))

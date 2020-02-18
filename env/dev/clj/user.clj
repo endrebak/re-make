@@ -5,11 +5,13 @@
     [clojure.spec.alpha :as s]
     [expound.alpha :as expound]
     [mount.core :as mount]
+    ;; [sente-example2.core :refer [start-app]]
     ))
 
 (alter-var-root #'s/*explain-out* (constantly expound/printer))
 
 (add-tap (bound-fn* clojure.pprint/pprint))
+
 
 ;; (defn start
 ;;   "Starts application.

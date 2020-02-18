@@ -5,6 +5,10 @@
   (:require
    [clojure.java.io :as io]
    [re-make.watch :as watch]
+   [nrepl.server :refer [start-server stop-server]]
+   [re-make.config :refer [env]]
+   [cprop.source :as source]
+   [mount.core :as mount]
    [re-make.layout :as layout]
    [re-make.middleware :as middleware]
    [clojure.string     :as str]
@@ -41,6 +45,16 @@
 
 ;; (timbre/set-level! :trace) ; Uncomment for more logging
 (reset! sente/debug-mode?_ true) ; Uncomment for extra debug info
+
+(defonce nrepl-server (start-server :bind "127.0.0.1" :port 7000))
+
+
+;; (println env)
+;; (println (source/from-system-props))
+;; (println (:nrepl-port (source/from-system-props)))
+
+;; (println (source/from-env))
+;; (println (:nrepl-port (source/from-env)))
 
 ;;;; Define our Sente channel socket (chsk) server
 
@@ -240,6 +254,8 @@
 (defn start! [] (start-router!) (start-web-server! 3000) (start-example-broadcaster!))
 
 (defn -main "For `lein run`, etc." [] (start!))
+
+;; (println (str "nrepl" (env :nrepl-port)))
 
 (comment
   (start!)
