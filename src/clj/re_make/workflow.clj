@@ -1,11 +1,17 @@
-(ns re-make.workflow)
 
-(def all
-  [{:from create-files
+;; how postpone the call?
+
+;; - first eval all def and defn
+
+;; - then collect defrules and add them to rules
+;;
+
+(defrule :all
+  [{:from 'create-files
     :wildcards {:f1 '(1 2 3 4) :f2 '(1)}}])
 
 
-(defrule create-files
+(defrule :create-files
   {:output "/mnt/work/endrebak/re-make/{file}.tsv"
    ;; :vars {:file }
    :run
@@ -25,9 +31,8 @@ gr = pr.random()
 gr.to_csv({output[0]}, sep='\t')
 "})
 
-
-(defrule nearest
-  {:input {create-files }
+(defrule :nearest
+  {:input 'create-files
    :output "/mnt/work/endrebak/re-make/nearest_{f1}_{f2}.tsv"
    :run
    "
@@ -40,10 +45,10 @@ gr = gr.nearest(gr2)
 gr.to_csv({output[0]}, sep='\t')
 "})
 
-(defrule stats
-  {:input nearest
-   :output "/mnt/work/endrebak/re-make/stats.tsv"
-   })
+;; (defrule stats
+;;   {:input nearest
+;;    :output "/mnt/work/endrebak/re-make/stats.tsv"
+;;    })
 ;; collect desired results
 ;; collect rules
 ;; find what output they produce
