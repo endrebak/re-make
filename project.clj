@@ -4,6 +4,7 @@
   :url "http://example.com/FIXME"
 
   :dependencies [[cheshire "5.8.1"]
+                 [com.stuartsierra/dependency "0.2.0"]
                  [compojure                 "1.6.1"] ; Or routing lib of your choice
                  [cljs-ajax "0.8.0"]
                  [com.taoensso/timbre       "4.10.0"]
