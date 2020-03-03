@@ -31,6 +31,7 @@ gr = pr.random()
 gr.to_csv({output[0]}, sep='\t')
 "})
 
+
 (defrule :nearest
   {:input 'create-files
    :output "/mnt/work/endrebak/re-make/nearest_{f1}_{f2}.tsv"

@@ -1,6 +1,7 @@
 (ns re-make.dag
   (require
-   '[re-make/read-workflows :as rw]))
+   '[re-make/read-workflows :as rw]
+   '[com.stuartsierra.dependency :as dep]))
 
 ;; (fn)
 ;; when
@@ -13,8 +14,12 @@ check wildcards
 (def dag (atom {}))
 
 (defn find-dag [rules]
-
-  )
+  (let [graph dep/graph])
+  (for [rule rules
+        :let [rule (rule :name)
+              depends-on (rule :input)]
+        :when [(and (nil? rule) (nil? depends-on))]]
+    (dep/depend rule depends-on)))
 
 ;; (add-watch rw/rules :update-dag
 ;;            (fn [key atom old-state new-state]
@@ -31,7 +36,7 @@ check wildcards
 ;;             (dep/depend :d :c))) ; "D depends on C"
 ;; This creates a structure like the following:
 
-;; need to fetch input and output from
+;; need to fetch input and output from the rules
 ;; need to create DAG to know which functions to run first
 ;; first create dag
 

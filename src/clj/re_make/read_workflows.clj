@@ -6,7 +6,10 @@
 (def rules (atom {}))
 
 
-(defn defrule [rulename rulebody] (swap! rules assoc rulename rulebody))
+(defn defrule
+  [rulename rulebody]
+  (let [rulebody (assoc rulebody :name rulename)]
+    (swap! rules assoc rulename rulebody)))
 
 
 ;; https://stackoverflow.com/a/24922859/992687
