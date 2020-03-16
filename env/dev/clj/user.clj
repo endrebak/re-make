@@ -5,6 +5,9 @@
     [clojure.spec.alpha :as s]
     [expound.alpha :as expound]
     [mount.core :as mount]
+    [re-make.core :as re-make]
+    [re-make.read-workflows :as rd :refer [defrule]]
+    [re-make.dag :as dag]
     ;; [sente-example2.core :refer [start-app]]
     ))
 
@@ -12,7 +15,7 @@
 
 (add-tap (bound-fn* clojure.pprint/pprint))
 
-
+(println "Loaded user profile at dev/env/clj/user.clj")
 ;; (defn start
 ;;   "Starts application.
 ;;   You'll usually want to run this on startup."

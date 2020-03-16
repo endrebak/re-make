@@ -1,6 +1,8 @@
 (ns re-make.read-workflows
   (:import [java.io PushbackReader])
-  (:require [clojure.java.io :as io]))
+  (:require
+   [clojure.java.io :as io]
+   [re-make.dag :as dag]))
 
 
 (def rules (atom {}))
@@ -33,3 +35,6 @@
 
 
 (def code (read-workflow wf))
+
+(defn eval-code [code]
+  (eval code))

@@ -1,7 +1,6 @@
 (ns re-make.dag
-  (require
-   '[re-make/read-workflows :as rw]
-   '[com.stuartsierra.dependency :as dep]))
+  (:require
+   [com.stuartsierra.dependency :as dep]))
 
 ;; (fn)
 ;; when
@@ -26,15 +25,29 @@ check wildcards
         (filter symbol?))
     [dependencies]))
 
+(defn add-dependency [graph dependencies]
+  (for [dependency (depends-on dependencies)]
+    (dep/depend graph rule dependency)))
 
-(defn find-dag [rules]
-  (let [graph dep/graph])
-  (for [rule rules
-        :let [rule (rule :name)
-              dependencies (rule :input)]
-        :when [(and (nil? rule) (nil? depends-on))]]
+(defn dag-pairs [rules]
+  (for [[rule v] rules
+        :let [dependencies (:input v)]
+        :when (not (or (nil? rule) (nil? dependencies)))]
     (for [dependency (depends-on dependencies)]
-      (dep/depend rule dependcy))))
+      (do
+        (println (str rule "->" dependency))
+        [rule dependency]))))
+
+
+;; (defn find-dag [rules]
+;;   (let [graph (dep/graph)]
+;;     (doseq [[rule v] rules
+;;           :let [dependencies (:input v)]
+;;           :when [(and (nil? rule) (nil? dependencies))]]
+;;       (doseq [dependency (depends-on dependencies)]
+;;         (dep/depend graph rule dependency)))
+;;     graph))
+
 
 ;; must iterate over all named inputs and their dependents
 

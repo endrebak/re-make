@@ -1,3 +1,4 @@
+(def wildcards ())
 
 (defrule 'create-bed
   {:run
@@ -25,8 +26,7 @@
 
 
 (defrule 'epic2
-  {:input {:bed '[lengths create-bed]
-           :baddaboo '[liftover]}
+  {:input {:bed '[lengths create-bed]}
    :wildcards '[genome]
    :input-switch #(case (:genome wildcards)
                     "hg38" 'lengths
