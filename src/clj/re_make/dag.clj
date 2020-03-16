@@ -13,13 +13,32 @@ check wildcards
 
 (def dag (atom {}))
 
+(defn my-flatten [x]
+  (if (coll? x)
+    (mapcat my-flatten x)
+    [x]))
+
+(defn depends-on
+  [dependencies]
+  (if (not (symbol? dependencies))
+    (->> dependencies
+        my-flatten
+        (filter symbol?))
+    [dependencies]))
+
+
 (defn find-dag [rules]
   (let [graph dep/graph])
   (for [rule rules
         :let [rule (rule :name)
-              depends-on (rule :input)]
+              dependencies (rule :input)]
         :when [(and (nil? rule) (nil? depends-on))]]
-    (dep/depend rule depends-on)))
+    (for [dependency (depends-on dependencies)]
+      (dep/depend rule dependcy))))
+
+;; must iterate over all named inputs and their dependents
+
+
 
 ;; (add-watch rw/rules :update-dag
 ;;            (fn [key atom old-state new-state]

@@ -24,6 +24,7 @@
                  [metosin/muuntaja "0.6.4"]
                  [metosin/reitit "0.3.9"]
                  [metosin/ring-http-response "0.9.1"]
+                 [com.cerner/clara-rules "0.20.0"]
                  [mount "0.1.16"]
                  [nrepl "0.6.0"]
                  [org.clojure/clojure "1.10.1"]
