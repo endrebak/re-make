@@ -38,6 +38,13 @@ check wildcards
         (println (str rule "->" dependency))
         [rule dependency]))))
 
+(let [g (dep/graph)]
+  (for [[rule dependency] p]
+    (do
+      (println (str rule "->" dependency))
+      (dep/depend g rule dependency)))
+  g)
+
 
 ;; (defn find-dag [rules]
 ;;   (let [graph (dep/graph)]
