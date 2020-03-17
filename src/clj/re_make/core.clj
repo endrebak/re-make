@@ -5,6 +5,9 @@
   (:require
    [clojure.java.io :as io]
    [re-make.watch :as watch]
+   [re-make.dag :as d]
+   [re-make.state :as state]
+   ;; [re-make.read-workflows :as rw :refer defrule]
    [nrepl.server :refer [start-server stop-server]]
    [re-make.config :refer [env]]
    [cprop.source :as source]
@@ -261,4 +264,14 @@
   (start!)
   (test-fast-server>user-pushes))
 
+
 ; (require '[re-make.watch :as w])
+
+;; (defn update-rules!
+;;   "Add rules described in workflow-file to state/rules."
+;;   []
+;;    (->> @state/workflow-file
+;;       rw/read-workflow
+;;       rw/eval-code!))
+
+;; (defn create-dag)

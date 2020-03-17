@@ -1,39 +1,72 @@
-;; (ns chip-seq)
+{:create-bed
 
-(def wildcards ())
-
-(defrule 'create-bed
-  {:run
-   "#!/usr/bin/env python
+ {:run
+  "#!/usr/bin/env python
 
    import pyranges as pr
    gr = pr.random()
-   gr.to_csv({output[0]}, sep='\t')"})
+   gr.to_csv({output[0]}, sep='\t')"}
 
+ :liftover
 
-(defrule 'liftover
-  {:input 'create-bed
-   :run
-   "cp {input} {output}"})
+ {:input :create-bed
+  :run
+  "cp {input} {output}"}
 
+ :lengths
 
-(defrule 'lengths
-  {:input 'liftover
-   :run
-   "#!/usr/bin/env python
+ {:input :liftover
+  :run
+  "#!/usr/bin/env python
 
    import pyranges as pr
    gr = pr.read_bed(input)
    gr = gr[gr.lengths() >= 100]
-   gr.to_csv({output})
-   "})
+   gr.to_csv({output})"}
+
+ :epic2
+
+ {:input {:bed [:lengths :create-bed]}
+  :wildcards [:genome]
+  :input-switch #(case (:genome %)
+                   "hg38" :lengths
+                   "hg19" :create-bed)
+  :run
+  "cp {input} {output}"}}
 
 
-(defrule 'epic2
-  {:input {:bed '[lengths create-bed]}
-   :wildcards '[genome]
-   :input-switch #(case (:genome wildcards)
-                    "hg38" 'lengths
-                    "hg19" 'create-bed)
-   :run
-   "cp {input} {output}"})
+;; (defrule 'create-bed
+;;   {:run
+;;    "#!/usr/bin/env python
+
+;;    import pyranges as pr
+;;    gr = pr.random()
+;;    gr.to_csv({output[0]}, sep='\t')"})
+
+
+;; (defrule 'liftover
+;;   {:input 'create-bed
+;;    :run
+;;    "cp {input} {output}"})
+
+
+;; (defrule 'lengths
+;;   {:input 'liftover
+;;    :run
+;;    "#!/usr/bin/env python
+
+;;    import pyranges as pr
+;;    gr = pr.read_bed(input)
+;;    gr = gr[gr.lengths() >= 100]
+;;    gr.to_csv({output})
+;;    "})
+
+
+;; (defrule 'epic2
+;;   {:input {:bed '[lengths create-bed]}
+;;    :wildcards '[genome]
+;;    :input-switch #(case (:genome wildcards)
+;;                     "hg38" 'lengths
+;;                     "hg19" 'create-bed)
+;;    :run
+;;    "cp {input} {output}"})

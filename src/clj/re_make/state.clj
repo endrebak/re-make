@@ -7,3 +7,5 @@
 (def code (atom []))
 
 (def dag (atom {}))
+
+(def rulegraph (atom {}))

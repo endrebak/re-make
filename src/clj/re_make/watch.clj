@@ -2,13 +2,13 @@
   (:require
     [hawk.core :as hawk]
     [re-make.state :as state]
-    [re-make.read-workflows :as rw]))
+    ))
 
 
 
-(defn watcher-read-main-file [ctx e]
-  (when (= (:file e) @state/workflow-file)
-    (rw/read-workflow @state/workflow-file)))
+;; (defn watcher-read-main-file [ctx e]
+;;   (when (= (:file e) @state/workflow-file)
+;;     (rw/read-workflow @state/workflow-file)))
 
 (def watcher
   (hawk/watch! [{:paths ["."]

@@ -1,14 +1,9 @@
+
 (ns re-make.dag
   (:require
    [com.stuartsierra.dependency :as dep]
    [re-make.state :as state]))
 
-
-
-(defn eval-code! [code]
-  (do
-    (reset! state/rules {})
-    (eval code)))
 
 
 (defn my-flatten [x]
@@ -38,10 +33,13 @@
   (dep/depend g a b))
 
 
-(defn rulegraph [code]
-  (-> code
+(defn rulegraph- [pairs]
+  (let [g (dep/graph)
+        pairs (->> pairs flatten (partition 2))]
+    (reduce add-dependency g pairs)))
+
+
+(defn rulegraph [rules]
+  (-> rules
       dag-pairs
-      (fn [dag-pairs]
-        (let [g (dep/graph)
-              pairs (->> dag-pairs flatten (partition 2))]
-          (reduce add-dependency g pairs)))))
+      rulegraph-))

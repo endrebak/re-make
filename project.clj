@@ -40,6 +40,8 @@
                  [re-frame "0.10.8"]
                  [reagent "0.8.1"]
                  [ring-webjars "0.2.0"]
+                 [refactor-nrepl "2.5.0"]
+                 [cider/cider-nrepl "0.24.0"]
                  [ring-middleware-format "0.7.4"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-defaults "0.3.2"]

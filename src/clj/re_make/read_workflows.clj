@@ -6,13 +6,15 @@
    [clojure.java.io :as io]))
 
 
-(defn defrule! [rulename rulebody]
-  (let [rulebody (assoc rulebody :name rulename)]
-    (swap! state/rules assoc rulename rulebody)))
+;; (defn defrule! [rulename rulebody]
+;;   (let [rulebody (assoc rulebody :name rulename)]
+;;     (do
+;;       (println rulename)
+;;       (swap! state/rules assoc rulename rulebody))))
 
 
-(defn defrule [rulename rulebody]
-  (defrule! rulename rulebody))
+;; (defn defrule [rulename rulebody]
+;;   (defrule! rulename rulebody))
 
 
 ;; https://stackoverflow.com/a/24922859/992687
@@ -25,8 +27,16 @@
           (recur (conj forms form))
           forms)))))
 
+(defn rules [f]
+  (nth (read-all f) 0))
 
-(defn read-workflow [f]
-  (let [code (read-all f)
-        to-include nil]
-    code))
+;; (defn read-workflow [f]
+;;   (let [code (read-all f)
+;;         to-include nil]
+;;     code))
+
+
+;; (defn eval-code! [code]
+;;   (do
+;;     (reset! state/rules {})
+;;     (eval code)))
