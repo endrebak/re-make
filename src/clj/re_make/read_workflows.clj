@@ -1,17 +1,18 @@
 (ns re-make.read-workflows
   (:import [java.io PushbackReader])
   (:require
-   [clojure.java.io :as io]
-   [re-make.dag :as dag]))
+   [re-make.state :as state]
+   [com.stuartsierra.dependency :as dep]
+   [clojure.java.io :as io]))
 
 
-(def rules (atom {}))
-
-
-(defn defrule
-  [rulename rulebody]
+(defn defrule! [rulename rulebody]
   (let [rulebody (assoc rulebody :name rulename)]
-    (swap! rules assoc rulename rulebody)))
+    (swap! state/rules assoc rulename rulebody)))
+
+
+(defn defrule [rulename rulebody]
+  (defrule! rulename rulebody))
 
 
 ;; https://stackoverflow.com/a/24922859/992687
@@ -29,12 +30,3 @@
   (let [code (read-all f)
         to-include nil]
     code))
-
-
-(def wf "src/clj/re_make/workflow.clj")
-
-
-(def code (read-workflow wf))
-
-(defn eval-code [code]
-  (eval code))
