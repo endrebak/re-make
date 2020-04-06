@@ -7,7 +7,7 @@
    [re-make.watch :as watch]
    [re-make.dag :as d]
    [re-make.state :as state]
-   ;; [re-make.read-workflows :as rw :refer defrule]
+   [re-make.read-workflows :as rw]
    [nrepl.server :refer [start-server stop-server]]
    [re-make.config :refer [env]]
    [cprop.source :as source]
@@ -264,6 +264,10 @@
   (start!)
   (test-fast-server>user-pushes))
 
+;; (defn update-state []
+;;   (-> @state/workflow-file
+;;       rw/rules
+;;       ))
 
 ; (require '[re-make.watch :as w])
 

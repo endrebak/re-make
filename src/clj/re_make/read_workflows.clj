@@ -27,8 +27,10 @@
           (recur (conj forms form))
           forms)))))
 
+
 (defn rules [f]
   (nth (read-all f) 0))
+
 
 ;; (defn read-workflow [f]
 ;;   (let [code (read-all f)
