@@ -13,9 +13,9 @@
 (def config {:prefix "/User/endrebakkenstovner/snakemake-example"})
 
 (def sample-sheet
-  {[{:sample "A" :fastq "data/samples/A.fastq"}
-    {:sample "B" :fastq "data/samples/B.fastq"}
-    {:sample "C" :fastq "data/samples/C.fastq"}]})
+  [{:sample "A" :fastq "data/samples/A.fastq"}
+   {:sample "B" :fastq "data/samples/B.fastq"}
+   {:sample "C" :fastq "data/samples/C.fastq"}])
 
 ;; automatically looks up in sample-sheet using wildcards
 

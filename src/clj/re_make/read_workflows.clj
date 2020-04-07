@@ -6,11 +6,6 @@
    [clojure.java.io :as io]))
 
 
-;; (defn defrule! [rulename rulebody]
-;;   (let [rulebody (assoc rulebody :name rulename)]
-;;     (do
-;;       (println rulename)
-;;       (swap! state/rules assoc rulename rulebody))))
 
 
 ;; (defn defrule [rulename rulebody]
@@ -31,14 +26,19 @@
 (defn rules [f]
   (nth (read-all f) 0))
 
-
-;; (defn read-workflow [f]
-;;   (let [code (read-all f)
-;;         to-include nil]
-;;     code))
+(def rules (atom {}))
 
 
-;; (defn eval-code! [code]
-;;   (do
-;;     (reset! state/rules {})
-;;     (eval code)))
+(defn handle-docs [& body]
+  (if (string? (first body))
+    (assoc (second body) :doc (first body))
+    (first body)))
+; (handle-docs "docstring" {:bla "bla"}) -> {:bla "bla", :doc "docstring"}
+; (handle-docs {:bla :bla}) -> {:bla :bla}
+
+(defmacro defrule
+  [name & body]
+  `(do
+     (let [body# (handle-docs ~@body)]
+       (swap! rules assoc ~(keyword name) (handle-docs body#))
+       (def ~(vary-meta name assoc :rule true) (handle-docs body#)))))
