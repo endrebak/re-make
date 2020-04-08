@@ -18,25 +18,25 @@
    {:sample "C" :fastq "data/samples/C.fastq"}])
 
 ;; automatically looks up in sample-sheet using wildcards
-
 (defrule bwa-map
   "Map DNA sequences against a reference genome with BWA."
   {:wildcards [:sample]
    :input {:genome "data/genome.fa"
-           :fastq sample-sheet}
+           :fastq "data/samples/{sample}.fastq"}
    :output ".bam"
    :threads 8
    :params {:rg "@RG\tID:{sample}\tSM:{sample}"}
    :shell "bwa mem -R '{params.rg}' {threads} {input.genome} {input.fastq} | samtools view -Sb - > {output}"})
 
-;; problem: how do you set the same path for outputs?
 
+;; problem: how do you set the same path for outputs?
 (def bam-files "")
+
 
 (defrule samtools-sort
   "Sort the bams."
   {:wildcards [:sample]
-   :input bwa-map
+   :input :bwa-map
    :output {:ext ".bam" :path bam-files}
    :shell "samtools sort -T sorted_reads/{wildcards.sample} -O bam {input} > {output}"})
 
@@ -44,9 +44,10 @@
 (defrule samtools-index
   "Index read alignments for random access."
   {:wildcards [:sample]
-   :input samtools-sort
+   :input :samtools-sort
    :output {:ext ".bam.bai" :path bam-files :flag :protected}
    :shell "samtools index {input}"})
+
 
 ;; it is so common to collect all of a wildcard that it happens by default
 ;; yes, but what if required custom logic?
@@ -55,18 +56,26 @@
   "Aggregate mapped reads from all samples and jointly call genomic variants on
   them."
   {:input {:fa "data/genome.fa"
-           :bam samtools-sort
-           :bai samtools-index}
+           :bam :samtools-sort
+           :bai :samtools-index}
    :output ".vcf"
    :shell "samtools mpileup -g -f {input.fa} {input.bam} | bcftools call -mv - > {output}"})
 
+
 ; rulenames are unique
 ; therefore can use as a key to the script
-
 (defrule plot-quals
-  {:input bcftools-call
+  {:input :bcftools-call
    :output ".svg"})
 
+;; must parse rules
+;; if input keyword -> rule
+;; if input dict -> :keyword values are rules
+;;
+
+
+;; for rule in rules
+;;
 
 
 ;; (defrule 'create-bed

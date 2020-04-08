@@ -26,8 +26,8 @@
 (defn rules [f]
   (nth (read-all f) 0))
 
-(def rules (atom {}))
 
+(def rules (atom {}))
 
 (defn handle-docs [& body]
   (if (string? (first body))
@@ -42,3 +42,28 @@
      (let [body# (handle-docs ~@body)]
        (swap! rules assoc ~(keyword name) (handle-docs body#))
        (def ~(vary-meta name assoc :rule true) (handle-docs body#)))))
+
+(defn name->dependencies
+  [rules]
+  (for [[name v] rules
+        :let [input (:input v)]]
+    [name input]))
+
+(defn rulegraph
+  [rules]
+  (let [m (name->dependencies rules)]
+    (for [[n v] m]
+      (if (keyword? v)
+        [n v]
+        [n (vals v)]))))
+
+(def r
+  {:bwa-map
+   {:input {:genome "data/genome.fa", :fastq "data/samples/{sample}.fastq"}},
+   :samtools-sort
+   {:input :bwa-map},
+   :samtools-index {:input :samtools-sort},
+   :bcftools-call {:input {:fa "data/genome.fa", :bam :samtools-sort, :bai :samtools-index}},
+   :plot-quals {:input :bcftools-call}})
+
+(rulegraph r)
