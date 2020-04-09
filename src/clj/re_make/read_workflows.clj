@@ -43,19 +43,19 @@
        (swap! rules assoc ~(keyword name) (handle-docs body#))
        (def ~(vary-meta name assoc :rule true) (handle-docs body#)))))
 
-(defn name->dependencies
+(defn rules->named-dependencies
   [rules]
   (for [[name v] rules
         :let [input (:input v)]]
     [name input]))
 
-(defn rulegraph
+(defn rules->dependencies
   [rules]
-  (let [m (name->dependencies rules)]
+  (let [m (rules->named-dependencies rules)]
     (for [[n v] m]
       (if (keyword? v)
         [n v]
-        [n (vals v)]))))
+        (for [x v] [n v])))))
 
 (def r
   {:bwa-map
@@ -66,4 +66,15 @@
    :bcftools-call {:input {:fa "data/genome.fa", :bam :samtools-sort, :bai :samtools-index}},
    :plot-quals {:input :bcftools-call}})
 
-(rulegraph r)
+(defn rulegraph
+  [rules]
+  (let [r->d (rules->dependencies rules)]
+    (reduce )))
+
+
+(def v "baah")
+(def vs [1 2 3 4])
+(map #(vec [v %]) vs)
+(for [x vs]
+  [v x])
+; [[v, x] for x in vs]
