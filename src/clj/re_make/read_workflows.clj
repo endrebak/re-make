@@ -117,6 +117,7 @@
     (reduce add-dependency g out)))
 
 
+
 (defn rulegraph
   [rules]
   (let [in (rule->property rules :in)
