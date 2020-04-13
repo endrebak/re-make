@@ -84,7 +84,7 @@
 ; [[v, x] for x in vs]
 
 
-(defn file->property
+(defn property->rule
   [rules property]
   (partition 2 (flatten (for [[k v] rules :let [p (property v)] :when p]
                           (if (not (coll? (property v)))
@@ -93,12 +93,40 @@
                               [f k]))))))
 
 
-(defn property->file
+(defn rule->property
   [rules property]
   (partition 2
              (flatten
               (for [[k v] rules :let [p (property v)] :when p]
                 (if (not (coll? p))
                   [k p]
-                  (for [f p]
-                    [k f]))))))
+                  (for [pp p]
+                    [k pp]))))))
+
+
+
+(defn add-dependency [g [a b]]
+  (dep/depend g a b))
+
+
+(defn filegraph
+  [rules]
+  (let [in (rule->property rules :in)
+        out (for [[r f] (rule->property rules :out)] [f r])
+        g (reduce add-dependency (dep/graph) in)]
+    (reduce add-dependency g out)))
+
+
+(defn rulegraph
+  [rules]
+  (let [in (rule->property rules :in)
+        f2r (into {} (for [[k v] out] [v k]))
+        r2r (for [[k v] in] [k (get f2r v)])]
+    (reduce add-dependency (dep/graph) r2r)))
+
+
+(defn targets
+  [rules]
+  (let [infiles (map first (property->rule rules :in))
+        outfiles (map first (property->rule rules :out))]
+    (set/difference (set outfiles) (set infiles))))
