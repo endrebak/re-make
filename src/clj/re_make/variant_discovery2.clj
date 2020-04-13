@@ -12,20 +12,22 @@
 
 
 
-(def input
+
+(def in
   {:genome "data/genome.fa"
    :fastq "data/samples/{sample}.fastq"})
 
-(def output
-  {:sorted-bam {:protected true}})
+
+(def out
+  {"bam/sorted.bam" {:protected true}})
 
 
 ;; automatically looks up in sample-sheet using wildcards
 (defrule bwa-map
   "Map DNA sequences against a reference genome with BWA."
   {:wildcards [:sample]
-   :input [:genome :fastq]
-   :output "bwa-map.bam"
+   :use [:genome :fastq]
+   :out "bwa-map.bam"
    :threads 8
    :params {:rg "@RG\tID:{sample}\tSM:{sample}"}
    :shell "bwa mem -R '{params.rg}' {threads} {genome} {fastq} | samtools view -Sb - > {bwa-map.bam}"})
@@ -34,32 +36,32 @@
 (defrule samtools-sort
   "Sort the bams."
   {:wildcards [:sample]
-   :input "bwa-map.bam"
-   :output "sorted.bam"
+   :in "bwa-map.bam"
+   :out "bam/sorted.bam"
    :shell "samtools sort -T {sample} -O bam {bwa-map.bam} > {sorted.bam}"})
 
 
 (defrule samtools-index
   "Index read alignments for random access."
   {:wildcards [:sample]
-   :input "sorted.bam"
-   :output "sorted.bam.bai"
-   :shell "samtools index {sorted.bam}"})
+   :in "bam/sorted.bam"
+   :out "bam/sorted.bam.bai"
+   :shell "samtools index {bam/sorted.bam}"})
 
 
 ;; it is so common to collect all of a wildcard that it happens by default
 ;; yes, but what if required custom logic?
 ;; think about later
 (defrule bcftools-call
-  "Aggregate mapped reads from all samples and jointly call genomic variants on
-  them."
-  {:input [:genome "sorted.bam" "sorted.bam.bai"]
-   :output "all.vcf"
+  "Aggregate mapped reads from all samples and jointly call genomic variants."
+  {:in ["bam/sorted.bam" "bam/sorted.bam.bai"]
+   :use :genome
+   :out "all.vcf"
    :shell "samtools mpileup -g -f {genome} {sorted.bam} | bcftools call -mv - > {all.vcf}"})
 
 
 ; rulenames are unique
 ; therefore can use as a key to the script
 (defrule plot-quals
-  {:input "all.vcf"
-   :output "quals.svg"})
+  {:in "all.vcf"
+   :out ["quals.svg" "quals.tsv"]})

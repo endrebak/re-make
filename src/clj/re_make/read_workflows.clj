@@ -69,8 +69,12 @@
 (defn rulegraph
   [rules]
   (let [r->d (rules->dependencies rules)]
-    (reduce )))
+    (reduce (dep/graph) ())))
 
+;; (defn files->rules
+;;   [rules])
+(defn files->rules
+  [])
 
 (def v "baah")
 (def vs [1 2 3 4])
@@ -78,3 +82,23 @@
 (for [x vs]
   [v x])
 ; [[v, x] for x in vs]
+
+
+(defn file->property
+  [rules property]
+  (partition 2 (flatten (for [[k v] rules :let [p (property v)] :when p]
+                          (if (not (coll? (property v)))
+                            [(property v) k]
+                            (for [f (property v)]
+                              [f k]))))))
+
+
+(defn property->file
+  [rules property]
+  (partition 2
+             (flatten
+              (for [[k v] rules :let [p (property v)] :when p]
+                (if (not (coll? p))
+                  [k p]
+                  (for [f p]
+                    [k f]))))))
