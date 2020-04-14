@@ -26,7 +26,7 @@
 (defrule bwa-map
   "Map DNA sequences against a reference genome with BWA."
   {:wildcards [:sample]
-   :use [:genome :fastq]
+   :external [:genome :fastq]
    :out "bwa-map.bam"
    :threads 8
    :params {:rg "@RG\tID:{sample}\tSM:{sample}"}
@@ -55,13 +55,14 @@
 (defrule bcftools-call
   "Aggregate mapped reads from all samples and jointly call genomic variants."
   {:in ["bam/sorted.bam" "bam/sorted.bam.bai"]
-   :use :genome
+   :external :genome
    :out "all.vcf"
    :shell "samtools mpileup -g -f {genome} {sorted.bam} | bcftools call -mv - > {all.vcf}"})
 
 
 ; rulenames are unique
-; therefore can use as a key to the script
+; therefore can external as a key to the script
 (defrule plot-quals
   {:in "all.vcf"
-   :out ["quals.svg" "quals.tsv"]})
+   :out ["quals.svg" "quals.tsv"]
+   :shell "plot {all.vcf} -o {quals.svg}"})

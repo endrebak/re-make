@@ -2,6 +2,7 @@
   (:import [java.io PushbackReader])
   (:require
    [re-make.state :as state]
+   [clojure.set :as set]
    [com.stuartsierra.dependency :as dep]
    [clojure.java.io :as io]))
 
@@ -121,13 +122,37 @@
 (defn rulegraph
   [rules]
   (let [in (rule->property rules :in)
+        out (rule->property rules :out)
         f2r (into {} (for [[k v] out] [v k]))
         r2r (for [[k v] in] [k (get f2r v)])]
     (reduce add-dependency (dep/graph) r2r)))
 
 
-(defn targets
+(defn file-targets
   [rules]
   (let [infiles (map first (property->rule rules :in))
         outfiles (map first (property->rule rules :out))]
     (set/difference (set outfiles) (set infiles))))
+
+
+(defn rule-targets
+  [rules]
+  (let [file-targets (file-targets rules)
+        filegraph (:dependencies (filegraph rules))]
+    (apply hash-map
+           (flatten
+            (for [f file-targets]
+              (for [r (filegraph f)]
+                [f r]))))))
+
+
+(defn job->job
+  [rules wildcards]
+  (let [rule-targets (rule-targets rules)
+        filegraph (filegraph rules)]))
+
+;; what can happen:
+
+;; waiting for job to finish, cannot go on
+
+;; start independent jobs
