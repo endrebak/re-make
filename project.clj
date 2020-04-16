@@ -4,6 +4,7 @@
   :url "http://example.com/FIXME"
 
   :dependencies [[cheshire "5.8.1"]
+                 [org.clojure/math.combinatorics "0.1.6"]
                  [com.stuartsierra/dependency "1.0.0"]
                  [compojure                 "1.6.1"] ; Or routing lib of your choice
                  [cljs-ajax "0.8.0"]

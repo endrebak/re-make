@@ -1,52 +1,45 @@
 
+;; (def x {:sample ["A" "B"]})
 
-
-(def samples ["A" "B"])
-
-(def config {:prefix "/User/endrebakkenstovner/snakemake-example"})
-
-(def sample-sheet
-  [{:sample "A" :fastq "data/samples/A.fastq"}
-   {:sample "B" :fastq "data/samples/B.fastq"}
-   {:sample "C" :fastq "data/samples/C.fastq"}])
+(def xs {:sample ["A" "B" "C"]
+         :genome ["hg38" "hg19"]})
 
 
 
-
-(def in
-  {:genome "data/genome.fa"
-   :fastq "data/samples/{sample}.fastq"})
+;; (def in
+;;   {:genome "data/genome.fa"
+;;    :fastq "data/samples/{sample}.fastq"})
 
 
 (def out
   {"bam/sorted.bam" {:protected true}})
 
 
-;; automatically looks up in sample-sheet using wildcards
+;; automatically looks up in sample-sheet using x
 (defrule bwa-map
   "Map DNA sequences against a reference genome with BWA."
-  {:wildcards [:sample]
-   :external [:genome :fastq]
+  {:x [:sample :genome]
+   :file [:genome :fastq]
    :out "bwa-map.bam"
    :threads 8
    :params {:rg "@RG\tID:{sample}\tSM:{sample}"}
-   :shell "bwa mem -R '{params.rg}' {threads} {genome} {fastq} | samtools view -Sb - > {bwa-map.bam}"})
+   :shell "bwa mem -R '{params.rg}' {threads} {ext.genome} {ext.fastq} | samtools view -Sb - > {out}"})
 
 
 (defrule samtools-sort
   "Sort the bams."
-  {:wildcards [:sample]
+  {:x [:sample :genome]
    :in "bwa-map.bam"
    :out "bam/sorted.bam"
-   :shell "samtools sort -T {sample} -O bam {bwa-map.bam} > {sorted.bam}"})
+   :shell "samtools sort -T {sample} -O bam {in} > {out}"})
 
 
 (defrule samtools-index
   "Index read alignments for random access."
-  {:wildcards [:sample]
+  {:x [:sample :genome]
    :in "bam/sorted.bam"
    :out "bam/sorted.bam.bai"
-   :shell "samtools index {bam/sorted.bam}"})
+   :shell "samtools index {in}"})
 
 
 ;; it is so common to collect all of a wildcard that it happens by default
@@ -55,14 +48,17 @@
 (defrule bcftools-call
   "Aggregate mapped reads from all samples and jointly call genomic variants."
   {:in ["bam/sorted.bam" "bam/sorted.bam.bai"]
-   :external :genome
    :out "all.vcf"
-   :shell "samtools mpileup -g -f {genome} {sorted.bam} | bcftools call -mv - > {all.vcf}"})
+   :x [:genome]
+   :xf #(collect :sample %)
+   :file :genome
+   :sh "samtools mpileup -g -f {file.genome} {in.0} | bcftools call -mv - > {out}"})
 
 
 ; rulenames are unique
 ; therefore can external as a key to the script
 (defrule plot-quals
   {:in "all.vcf"
+   :x [:genome]
    :out ["quals.svg" "quals.tsv"]
-   :shell "plot {all.vcf} -o {quals.svg}"})
+   :shell "plot {in} -o {out.0}"})
