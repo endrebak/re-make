@@ -3,6 +3,7 @@
   (:require
    [re-make.state :as state]
    [clojure.set :as set]
+   [clojure.math.combinatorics :as combo :refer [cartesian-product] :rename {cartesian-product cartesian}]
    [com.stuartsierra.dependency :as dep]
    [clojure.java.io :as io])
   (:use [selmer.parser]))
@@ -31,6 +32,7 @@
 
 ;; (require '[clojure.set :as set])
 ;; (require '[com.stuartsierra.dependency :as dep])
+;; (require '[clojure.math.combinatorics :as combo])
 
 
 (def rules (atom {}))
@@ -158,6 +160,7 @@
               (for [r (filegraph f)]
                 [f r]))))))
 
+
 (def rt (rule-targets @rules))
 ;; (defn get-xs
 ;;   [name xs]
@@ -181,121 +184,32 @@
 
 
 (defn job-targets
-  [rules & [precomputed]]
+  [rules xs & [precomputed]]
   (let [rule-targets (rule-targets rules)
         missing-targets (set/difference (set (vals rule-targets)) (set (keys precomputed)))
-        postcomputed (map vec (combo/cartesian-product missing-targets (expand xs)))]
+        postcomputed (map vec (cartesian missing-targets (expand xs)))]
     (concat precomputed postcomputed)))
 
+(defn xs-per-rule
+  [rules inxs]
+  (for [rule rules]
+    (let [xf (:xf rule)
+          inxs (if xf (map xf inxs) inxs)]
+      (map #(vec [rule %]) (cartesian inxs)))))
 
-(defn jobgraph
-  [rules precomputed]
-  (let [job-targets (job-targets rules precomputed)
-        rulegraph (rulegraph rules)]
-    (for [[rulename xs] job-targets
-          :let [deps ((:dependencies rulegraph) rulename)]]
-      (do
-        (println "----")
-        (println rulename)
-        (println deps)
-        (println xs)))))
+;; (xs-per-rule (@rules :bcftools-call) )
 
-;; need to iterate over
-
-;; either a rule has precomputed
-;; xs or not
 ;; (defn jobgraph
-;;   [rules targets]
-;;   (let [rule-targets (rule-targets rules)
-;;         missing (difference (set (vals rule-targets)) (set (keys targets)))
-;;         ]))
+;;   [rules xs precomputed]
+;;   (let [job-targets (job-targets rules xs precomputed)
+;;         rule-targets (rule-targets rules)
+;;         rulegraph (rulegraph rules)]
+;;     (for [[rulename xs] job-targets
+;;           :let [deps ((:dependencies rulegraph) rulename)
+;;                 outfiles (map second (rule->property (select-keys rules [rulename]) :out))
+;;                 ]]
+;;       )))
 
-;; (defn job-targets
-;;   [rules xs]
-;;   (let [rt (rule-targets rules)]
-;;     (for [[file rulename] rt]
-;;       (let [rule (rules rulename)
-;;             ]))))
-
-
-;; (defn jobgraph [rules xs]
-;;   (let [fg (filegraph rules)
-;;         ft (out-targets rules)]
-;;     ))
-
-
-
-;; (defn job->job
-;;   [rules wildcards]
-;;   (let [rule-targets (rule-targets rules)
-;;         filegraph (filegraph rules)]))
-
-
-;; (defn jobs
-;;   [rule]
-;;   (let []))
-;; (defn all-combos
-;;   [rule-wildcards wildcards]
-;;   ())
-
-;; (defn fill-rule
-;;   [{:keys [in out external shell wildcards params]} all-wildcards]
-;;   (let [infiles (fill-file)]))
-  ;; (let [code ()])
-  ;;       params (:params rule)
-  ;;       external (:params external)]
-  ;;   ()))
-
-;; (defn format-string
-;;   [])
-
-
-;; (defn jobs
-;;   [rule wildcards]
-;;   (let [rule-wildcards (rule :wildcards)
-;;         job-wildcards (select-keys wildcards rule-wildcards)]
-;;     ())
-
-
-
-;; what can happen:
-
-;; waiting for job to finish, cannot go on
-
-;; start independent jobs
-
-
-; (map #(xs %) ks)
-; (["A" "B" "C"] ["hg38" "hg19"])
-
-;; (for [[f r] rt]
-;;   (for [x (expand )])
-;;   {:file f :rule r })
-
-
-(def deps
-  {:samtools-sort #{:bwa-map},
-   :samtools-index #{:samtools-sort},
-   :bcftools-call #{:samtools-index :samtools-sort},
-   :plot-quals #{:bcftools-call}})
-
-;; (defn rulerecur
-;;   [rules target m]
-;;   (for [r (rules target)]
-;;     (recur rules r (assoc m r "whatevz"))))
-
-;; (rulerecur deps :plot-quals {})
-
-
-
-I'd like to iterate over a map representing a DAG and build a new map at the
-same time. I have tried the below function, but it does not work. The second time it is called
-
-(def deps
-  {:samtools-sort #{:bwa-map},
-   :samtools-index #{:samtools-sort},
-   :bcftools-call #{:samtools-index :samtools-sort},
-   :plot-quals #{:bcftools-call}})
 
 
 (defn rulerecur
@@ -308,7 +222,10 @@ same time. I have tried the below function, but it does not work. The second tim
       v
       (recur rules targets v (inc i)))))
 
-(rulerecur deps [:plot-quals] [] 5)
+
+(def deps (:dependencies rg))
+;; (rulerecur deps [:plot-quals] [] 5)
+
 
 ;; map: clojure.lang.LazySeq@a8e77100
 ;; new targets: (#{:bcftools-call})
